@@ -1,0 +1,9 @@
+[package]
+name = "fft-plot-example"
+version = "0.1.0"
+authors = ["Charles Saracco <crsaracco@gmail.com>"]
+
+[dependencies]
+rustfft = "2.0.0"
+itertools-num = "*"
+criterion-plot = "*"
