@@ -15,16 +15,22 @@ const SAMPLES: usize = 44100;
 
 fn main() {
     // Get a second's worth of data @ 44100 Hz sampling rate
-    let mut saw_osc = sawtooth_oscillator::SawtoothOscillator::new();
-    saw_osc.change_frequency(440.0);
+    let mut saw_osc1 = sawtooth_oscillator::SawtoothOscillator::new();
+    saw_osc1.change_frequency(410.0);
+
     let mut input: Vec<Complex<f64>> = Vec::new();
-    for _ in 0..SAMPLES {
-        input.push(Complex::new(saw_osc.next_sample(SAMPLES as f64), 0.0));
+    let mut graph_this_time: Vec<f64> = Vec::new();
+    for i in 0..SAMPLES {
+        let saw_value =
+            saw_osc1.next_sample(SAMPLES as f64)
+        ;
+        input.push(Complex::new(saw_value, 0.0));
+        if i < 440 {
+            graph_this_time.push(saw_value);
+        }
     }
 
-    for i in 0..SAMPLES {
-        println!("input {}: {}", i, input[i]);
-    }
+    plot_vector(graph_this_time, "time domain", "time.svg", false);
 
     // Perform FFT on the samples
     let mut output: Vec<Complex<f64>> = vec![Complex::zero(); SAMPLES];
@@ -39,11 +45,16 @@ fn main() {
         graph_this.push(output[i].to_polar().0);
     }
 
+    /*
+    // Super simple triangular window
     for i in 0..SAMPLES/2 {
-        println!("output {}: {}", i, graph_this[i]);
+        graph_this[i] *= i as f64;
+        graph_this[SAMPLES/2-i-1] *= i as f64;
     }
+    */
 
-    plot_vector(graph_this, "sawtooth", "magnitude.svg", true);
+
+    plot_vector(graph_this, "frequency domain", "magnitude.svg", true);
 }
 
 
@@ -57,7 +68,7 @@ pub fn plot_vector(y_values: Vec<f64>, dataname: &'static str, filename: &'stati
     f.set(Font("Helvetica"));
     f.set(FontSize(16.0));
     f.set(Output(Path::new(filename)));
-    f.set(Size(1336, 768));
+    f.set(Size(1000, 400));
 
     // If log, set y axis to log mode:
     if log {
@@ -67,6 +78,7 @@ pub fn plot_vector(y_values: Vec<f64>, dataname: &'static str, filename: &'stati
         );
         f.configure(Axis::LeftY, |a| a
             .set(Scale::Logarithmic)
+            .set(Range::Limits(1.0, 100000.0))
         );
     }
 
